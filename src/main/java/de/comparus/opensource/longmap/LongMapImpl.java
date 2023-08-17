@@ -186,12 +186,11 @@ public class LongMapImpl<V> implements LongMap<V> {
     public boolean isEmpty() { return size() == 0; }
 
     public boolean containsKey(long key) {
-        boolean contains = false;
+
         for(MyEntry<Long, V> myEntry: bucketArray){
             if(myEntry != null) {
                 if(key == myEntry.key){
                     return true;
-//                    break;
                 }
             }
         }
@@ -199,12 +198,11 @@ public class LongMapImpl<V> implements LongMap<V> {
     }
 
     public boolean containsValue(V value) {
-        boolean contains = false;
+
         for(MyEntry<Long, V> myEntry: bucketArray){
             if(myEntry != null) {
                 if(value.equals(myEntry.value)){
                     return true;
-//                    break;
                 }
             }
         }
