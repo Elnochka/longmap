@@ -12,7 +12,7 @@ public interface LongMap<V> {
     boolean containsValue(V value);
 
     long[] keys();
-    List<V> values();
+    V[] values();
 
     long size();
     void clear();

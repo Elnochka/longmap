@@ -1,24 +1,22 @@
 package de.comparus.opensource.longmap;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 public class LongMapImpl<V> implements LongMap<V> {
 
-    private List<MyEntry<Long, V> > bucketArray;
+    private MyEntry<Long, V>[] bucketArray;
     private int numBuckets;
     private int size;
+    private MyEntry<Long, V> myEntry = new MyEntry<>();
 
     public LongMapImpl()
     {
-        this.bucketArray = new ArrayList<>();
-        this.numBuckets = 16;
+        this.numBuckets = 5;
+        this.bucketArray = (MyEntry<Long, V>[]) Array.newInstance(myEntry.getClass(), numBuckets);
         this.size = 0;
 
-        for (int i = 0; i < numBuckets; i++) {
-            bucketArray.add(null);
-        }
     }
-
 
     final class MyEntry<Long, V> {
         private Long key;
@@ -31,6 +29,9 @@ public class LongMapImpl<V> implements LongMap<V> {
             this.key = key;
             this.value = value;
             this.hashCode = hashCode;
+        }
+        public MyEntry(){
+            this.hashCode = 0;
         }
 
         public Long getKey() {
@@ -101,7 +102,7 @@ public class LongMapImpl<V> implements LongMap<V> {
         int bucketIndex = getBucketIndex(key);
         int hashCode = hashCode(key);
 
-        MyEntry<Long, V> head = bucketArray.get(bucketIndex);
+        MyEntry<Long, V> head = bucketArray[bucketIndex];
 
         MyEntry<Long, V> prev = null;
         while (head != null) {
@@ -122,7 +123,7 @@ public class LongMapImpl<V> implements LongMap<V> {
         if (prev != null) {
             prev.next = head.next;
         } else {
-            bucketArray.set(bucketIndex, head.next);
+            bucketArray[bucketIndex] = head.next;
         }
 
         return head.value;
@@ -133,12 +134,12 @@ public class LongMapImpl<V> implements LongMap<V> {
 
         int bucketIndex = getBucketIndex(key);
         int hashCode = hashCode(key);
-
-        MyEntry<Long, V> head = bucketArray.get(bucketIndex);
+        MyEntry<Long, V> head = bucketArray[bucketIndex];
 
         while (head != null) {
-            if (head.key.equals(key) && head.hashCode == hashCode)
+            if (head.key.equals(key) && head.hashCode == hashCode) {
                 return head.value;
+            }
             head = head.next;
         }
 
@@ -149,7 +150,7 @@ public class LongMapImpl<V> implements LongMap<V> {
 
         int bucketIndex = getBucketIndex(key);
         int hashCode = hashCode(key);
-        MyEntry<Long, V> head = bucketArray.get(bucketIndex);
+        MyEntry<Long, V> head = bucketArray[bucketIndex];
 
         while (head != null) {
             if (head.key.equals(key) && head.hashCode == hashCode) {
@@ -160,18 +161,15 @@ public class LongMapImpl<V> implements LongMap<V> {
         }
 
         size++;
-        head = bucketArray.get(bucketIndex);
+        head = bucketArray[bucketIndex];
         MyEntry<Long, V> newNode = new MyEntry<Long, V>(key, value, hashCode);
         newNode.next = head;
-        bucketArray.set(bucketIndex, newNode);
-
+        bucketArray[bucketIndex] = newNode;
         if ((1.0 * size) / numBuckets >= 0.7) {
-            List<MyEntry<Long, V>> temp = bucketArray;
-            bucketArray = new ArrayList<>();
             numBuckets = 2 * numBuckets;
+            MyEntry<Long, V>[] temp = bucketArray;
+            bucketArray = (MyEntry<Long, V>[]) Array.newInstance(myEntry.getClass(), numBuckets);
             size = 0;
-            for (int i = 0; i < numBuckets; i++)
-                bucketArray.add(null);
 
             for (MyEntry<Long, V> headNode : temp) {
                 while (headNode != null) {
@@ -225,7 +223,7 @@ public class LongMapImpl<V> implements LongMap<V> {
         return keys;
     }
 
-    public List<V> values() {
+    public V[] values() {
 
         List<V> listValues = new ArrayList<>();
         for(MyEntry<Long, V> myEntry: bucketArray){
@@ -234,18 +232,21 @@ public class LongMapImpl<V> implements LongMap<V> {
             }
         }
 
-        V[] values = (V[])new Object[listValues.size()];
+        Class v = listValues.get(0).getClass();
+        V[] values = (V[]) Array.newInstance(v, listValues.size());
+
         for (int i = 0; i < listValues.size(); i++){
             values[i] = listValues.get(i);
         }
-        return listValues;
+
+        return values;
     }
 
     public long size() { return size; }
 
     public void clear() {
         for (int i = 0; i < numBuckets; i++) {
-            bucketArray.set(i, null);
+            bucketArray[i] = null;
         }
 
     }
